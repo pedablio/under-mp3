@@ -1,7 +1,9 @@
-﻿// Learn more about F# at http://fsharp.org
-// See the 'F# Tutorial' project for more help.
+﻿open System
+open System.IO
 
-[<EntryPoint>]
-let main argv = 
-    printfn "%A" argv
-    0 // return an integer exit code
+let musicsFolder = "Musics"
+
+// Create folder if not exists
+Directory.CreateDirectory musicsFolder |> ignore
+
+Console.ReadKey() |> ignore

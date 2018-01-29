@@ -8,12 +8,12 @@
     <ProjectGuid>3dc81886-b1fc-47d7-8640-43e0e5202f11</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>UnderMP3</RootNamespace>
-    <AssemblyName>UnderMP3</AssemblyName>
+    <AssemblyName>AutoTag</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <UseStandardResourceNames>true</UseStandardResourceNames>
     <TargetFSharpCoreVersion>4.4.1.0</TargetFSharpCoreVersion>
-    <Name>UnderMP3</Name>
+    <Name>AutoTag</Name>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>

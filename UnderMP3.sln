@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27130.2026
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "UnderMP3", "UnderMP3\UnderMP3.fsproj", "{3DC81886-B1FC-47D7-8640-43E0E5202F11}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "AutoTag", "UnderMP3\AutoTag.fsproj", "{3DC81886-B1FC-47D7-8640-43E0E5202F11}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
