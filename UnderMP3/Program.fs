@@ -123,6 +123,3 @@ MP3Files |> Array.iter (fun fileDir ->
     moveFile fileDir buildFolder
     deleteFilePicture fileDir
 )
-
-
-Console.ReadKey() |> ignore
