@@ -11,7 +11,7 @@
     <AssemblyName>AutoTag</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <UseStandardResourceNames>true</UseStandardResourceNames>
+    <UseStandardResourceNames>True</UseStandardResourceNames>
     <TargetFSharpCoreVersion>4.4.1.0</TargetFSharpCoreVersion>
     <Name>AutoTag</Name>
   </PropertyGroup>

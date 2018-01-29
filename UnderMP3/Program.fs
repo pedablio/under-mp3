@@ -19,7 +19,7 @@ Directory.CreateDirectory buildFolder |> ignore
 
 let getFileInfo fileDir =
     let fileName = Path.GetFileNameWithoutExtension fileDir
-    let namePieces = fileName.Split ([|" - "|], StringSplitOptions.None)
+    let namePieces = fileName.Split ([|" - "|], StringSplitOptions.RemoveEmptyEntries)
     let titleAlbum = (Array.head << Array.tail) namePieces
     let parentDir = Directory.GetParent fileDir
 
@@ -71,12 +71,29 @@ let getFilePicture fileDir =
     match pic with
     | Some c ->
         let imgDir = cutImageInSquare c
-        let albumCover = Id3v2.AttachedPictureFrame(Picture imgDir)
+        let albumCover = Id3v2.AttachedPictureFrame(Picture imgDir) :> IPicture
         albumCover.Type <- PictureType.FrontCover
 
-        [| albumCover :> IPicture |]
-    | _ ->
-        [| |]
+        [| albumCover |]
+    | _ -> [||]
+
+let deleteFilePicture fileDir =
+    let fileName = Path.GetFileNameWithoutExtension fileDir
+    let genreFolder = (Directory.GetParent fileDir).FullName
+    let pic =
+        Directory.GetFiles genreFolder
+        |> Array.filter (fun c -> isImage c && Path.GetFileNameWithoutExtension c = fileName)
+        |> Array.tryHead
+    
+    match pic with 
+    | Some p -> File.Delete p
+    | _ -> ()
+
+let moveFile dir buildDir  =
+    let filename = Path.GetFileName dir
+    let moveDir = Path.Combine (buildDir, filename)
+
+    File.Move (dir, moveDir)
 
 let MP3Files = 
     Directory.GetDirectories musicsFolder
@@ -86,21 +103,25 @@ let MP3Files =
 MP3Files |> Array.iter (fun fileDir ->
     let fileInfo = getFileInfo fileDir
     let pictures = getFilePicture fileDir
-
     let file = File.Create fileDir
+    let artist = [| fileInfo.Artist |]
+
     file.Tag.Title <- fileInfo.Title
     file.Tag.Album <- fileInfo.Album
-    file.Tag.Performers <- [| fileInfo.Artist |]
-    file.Tag.AlbumArtists <- [| fileInfo.Artist |]
-    file.Tag.Composers <- [| fileInfo.Artist |]
-    file.Tag.Genres <- [| fileInfo.Genre |]
-    file.Tag.Comment <- ""
-    file.Tag.Track <- uint32 1
-    file.Tag.TrackCount <- uint32 1
+    file.Tag.Performers <- artist
+    file.Tag.AlbumArtists <- artist
+    file.Tag.Composers <- artist
+    file.Tag.Genres <- artist
+    file.Tag.Comment <- String.Empty
+    file.Tag.Track <- 1u
+    file.Tag.TrackCount <- 1u
     file.Tag.Year <- uint32 DateTime.Now.Year
     file.Tag.Pictures <- pictures
 
     file.Save()
+
+    moveFile fileDir buildFolder
+    deleteFilePicture fileDir
 )
 
 
