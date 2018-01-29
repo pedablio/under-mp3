@@ -6,18 +6,6 @@ open TagLib
 let musicsFolder = "Musics"
 let buildFolder = "Tagged"
 
-type FileTags = {
-    Title: string
-    Album: string
-    AlbumArtists: string[]
-    Genres: string[]
-    Comment: string
-    Track: int
-    TrackCount: int
-    Year: int
-    Pictures: Picture[]
-}
-
 type FileInfo = {
     Title: string
     Album: string
@@ -81,32 +69,39 @@ let getFilePicture fileDir =
         |> Array.tryHead
 
     match pic with
-    | Some c -> [| Picture(cutImageInSquare c) |]
-    | _ -> [||]
+    | Some c ->
+        let imgDir = cutImageInSquare c
+        let albumCover = Id3v2.AttachedPictureFrame(Picture imgDir)
+        albumCover.Type <- PictureType.FrontCover
+
+        [| albumCover :> IPicture |]
+    | _ ->
+        [| |]
 
 let MP3Files = 
     Directory.GetDirectories musicsFolder
     |> Array.collect (fun dir -> Directory.GetFiles (dir, "*.mp3"))
 
-let MP3Tags =
-    MP3Files
-    |> Array.map (fun f ->
-        let fileInfo = getFileInfo f
-        let pictures = getFilePicture f
 
-        {
-            Title = fileInfo.Title;
-            Album = fileInfo.Album;
-            AlbumArtists = [| fileInfo.Artist |];
-            Genres = [| fileInfo.Genre |];
-            Comment = "";
-            Track = 1;
-            TrackCount = 1;
-            Year = DateTime.Now.Year;
-            Pictures = pictures;
-        }
-    )
+MP3Files |> Array.iter (fun fileDir ->
+    let fileInfo = getFileInfo fileDir
+    let pictures = getFilePicture fileDir
 
-printfn "%A" MP3Tags
+    let file = File.Create fileDir
+    file.Tag.Title <- fileInfo.Title
+    file.Tag.Album <- fileInfo.Album
+    file.Tag.Performers <- [| fileInfo.Artist |]
+    file.Tag.AlbumArtists <- [| fileInfo.Artist |]
+    file.Tag.Composers <- [| fileInfo.Artist |]
+    file.Tag.Genres <- [| fileInfo.Genre |]
+    file.Tag.Comment <- ""
+    file.Tag.Track <- uint32 1
+    file.Tag.TrackCount <- uint32 1
+    file.Tag.Year <- uint32 DateTime.Now.Year
+    file.Tag.Pictures <- pictures
+
+    file.Save()
+)
+
 
 Console.ReadKey() |> ignore
