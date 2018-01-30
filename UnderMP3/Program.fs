@@ -9,8 +9,8 @@ let buildFolder = "Tagged"
 type FileInfo = {
     Title: string
     Album: string
-    Artist: string
-    Genre: string
+    Artists: string[]
+    Genres: string[]
 }
 
 // Create folder if not exists
@@ -38,15 +38,15 @@ let replaceGenre genre =
 
 let getFileInfo filePath =
     let fileName = getFileName (filePath, false)
-    let namePieces = singleSplit fileName " - "
-    let titleAlbum = namePieces |> getLastItem |> trim
+    let namePieces = singleSplit fileName " - " |> Array.map trim
+    let titleAlbum = namePieces |> getLastItem
     let parentFolderName = (Directory.GetParent filePath).Name
 
     {
         Title = titleAlbum;
         Album = titleAlbum + " - Single";
-        Artist = namePieces |> Array.head |> trim;
-        Genre = replaceGenre parentFolderName;
+        Artists = [| namePieces |> Array.head |];
+        Genres = [| replaceGenre parentFolderName |];
     }
 
 let isImage (path: string) =
@@ -122,14 +122,13 @@ MP3Files
     let fileInfo = getFileInfo filePath
     let pictures = getFilePicture filePath
     let file = File.Create filePath
-    let artist = [| fileInfo.Artist |]
 
     file.Tag.Title <- fileInfo.Title
     file.Tag.Album <- fileInfo.Album
-    file.Tag.Performers <- artist
-    file.Tag.AlbumArtists <- artist
-    file.Tag.Composers <- artist
-    file.Tag.Genres <- [| fileInfo.Genre |]
+    file.Tag.Performers <- fileInfo.Artists
+    file.Tag.AlbumArtists <- fileInfo.Artists
+    file.Tag.Composers <- fileInfo.Artists
+    file.Tag.Genres <- fileInfo.Genres
     file.Tag.Comment <- String.Empty
     file.Tag.Track <- 1u
     file.Tag.TrackCount <- 1u
