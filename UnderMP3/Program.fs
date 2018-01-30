@@ -44,9 +44,7 @@ let cutImageInSquare (imgDir: string) =
         then 
             let minorSide = min h w
             let divider x =
-                match x - minorSide with
-                | 0 -> 0
-                | sub -> sub / 2
+               float (x - minorSide) * 0.5 |> int
 
             let section = Rectangle (divider w, divider h, minorSide, minorSide)
             let newImage = image.Clone(section, image.PixelFormat)
