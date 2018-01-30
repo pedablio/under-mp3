@@ -20,20 +20,26 @@ Directory.CreateDirectory buildFolder |> ignore
 let getLastItem =
     Array.rev >> Array.head
 
+let singleSplit (text: string) (separator: string) =
+    text.Split([| separator |], StringSplitOptions.RemoveEmptyEntries)
+
+let trim (text: string) =
+    text.Trim()
+
 let getFileName (path, showExtension) =
     if showExtension then Path.GetFileName path
     else Path.GetFileNameWithoutExtension path
 
 let getFileInfo filePath =
     let fileName = getFileName (filePath, false)
-    let namePieces = fileName.Split ([|" - "|], StringSplitOptions.RemoveEmptyEntries)
-    let titleAlbum = getLastItem namePieces
+    let namePieces = singleSplit fileName " - "
+    let titleAlbum = namePieces |> getLastItem |> trim
     let parentFolderName = (Directory.GetParent filePath).Name
 
     {
         Title = titleAlbum;
         Album = titleAlbum + " - Single";
-        Artist = Array.head namePieces;
+        Artist = namePieces |> Array.head |> trim;
         Genre = parentFolderName;
     }
 
