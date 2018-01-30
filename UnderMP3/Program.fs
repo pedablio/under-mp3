@@ -17,6 +17,10 @@ type FileInfo = {
 Directory.CreateDirectory musicsFolder |> ignore
 Directory.CreateDirectory buildFolder |> ignore
 
+let whenSome f = function
+    | None -> None
+    | Some x -> Some <| f x
+
 let getLastItem =
     Array.rev >> Array.head
 
@@ -77,22 +81,24 @@ let makeSquareImage (imgPath: string) =
         
     imgPath
 
+let createCover imagePath = 
+    let squareImagePath = makeSquareImage imagePath
+    let albumCover = Id3v2.AttachedPictureFrame(Picture squareImagePath) :> IPicture
+    albumCover.Type <- PictureType.FrontCover
+
+    albumCover
+
 let getFilePicture filePath = 
     let fileName = getFileName (filePath, false)
     let genreFolderPath = (Directory.GetParent filePath).FullName
 
-    let picture =
+    let picturePath =
         Directory.GetFiles genreFolderPath
         |> Array.filter (fun file -> isImage file && getFileName (file, false) = fileName)
         |> Array.tryHead
 
-    match picture with
-    | Some imagePath ->
-        let squareImagePath = makeSquareImage imagePath
-        let albumCover = Id3v2.AttachedPictureFrame(Picture squareImagePath) :> IPicture
-        albumCover.Type <- PictureType.FrontCover
-
-        [| albumCover |]
+    match picturePath with
+    | Some path -> [| createCover path |]
     | _ -> [||]
 
 let deleteFilePicture filePath =
@@ -103,11 +109,9 @@ let deleteFilePicture filePath =
         |> Array.filter (fun file -> isImage file && getFileName (file, false) = fileName)
         |> Array.tryHead
     
-    match imagePath with 
-    | Some path -> File.Delete path
-    | _ -> ()
+    imagePath |> whenSome File.Delete |> ignore
 
-let moveFile path buildPath  =
+let moveFile path buildPath =
     let filename = getFileName (path, true)
     let movePath = Path.Combine (buildPath, filename)
 
