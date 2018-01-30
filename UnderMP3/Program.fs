@@ -129,7 +129,7 @@ MP3Files
     file.Tag.Performers <- artist
     file.Tag.AlbumArtists <- artist
     file.Tag.Composers <- artist
-    file.Tag.Genres <- artist
+    file.Tag.Genres <- [| fileInfo.Genre |]
     file.Tag.Comment <- String.Empty
     file.Tag.Track <- 1u
     file.Tag.TrackCount <- 1u
