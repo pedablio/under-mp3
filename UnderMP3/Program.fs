@@ -30,6 +30,12 @@ let getFileName (path, showExtension) =
     if showExtension then Path.GetFileName path
     else Path.GetFileNameWithoutExtension path
 
+let replaceGenre genre =
+    match genre with
+    | "R&B" -> "R&B/Soul"
+    | "Hip Hop" -> "Hip Hop/Rap"
+    | gen -> trim gen
+
 let getFileInfo filePath =
     let fileName = getFileName (filePath, false)
     let namePieces = singleSplit fileName " - "
@@ -40,7 +46,7 @@ let getFileInfo filePath =
         Title = titleAlbum;
         Album = titleAlbum + " - Single";
         Artist = namePieces |> Array.head |> trim;
-        Genre = parentFolderName;
+        Genre = replaceGenre parentFolderName;
     }
 
 let isImage (path: string) =
