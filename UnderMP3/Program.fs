@@ -61,11 +61,10 @@ module Program =
         if h <> w
             then 
                 let minorSide = min h w
-                let divider x =
-                   float (x - minorSide) * 0.5 |> int
+                let divider x = (x - minorSide) / 2
 
                 let section = Rectangle (divider w, divider h, minorSide, minorSide)
-                let newImage = image.Clone(section, image.PixelFormat)
+                let newImage = image.Clone (section, image.PixelFormat)
 
                 image.Dispose()
 
@@ -76,7 +75,7 @@ module Program =
         
         imgPath
 
-    let createCover imagePath = 
+    let createCover imagePath =
         let squareImagePath = makeSquareImage imagePath
         let albumCover = Id3v2.AttachedPictureFrame(Picture squareImagePath) :> IPicture
         albumCover.Type <- PictureType.FrontCover
