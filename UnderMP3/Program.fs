@@ -1,146 +1,141 @@
-﻿open System
+﻿namespace UnderMP3.AutoTag
+
+open System
 open System.IO
 open System.Drawing
 open TagLib
 
-let musicsFolder = "Musics"
-let buildFolder = "Tagged"
+open UnderMP3.AutoTag.Helpers
 
-type FileInfo = {
-    Title: string
-    Album: string
-    Artists: string[]
-    Genres: string[]
-}
+module Program =
+    let musicsFolder = "Musics"
+    let buildFolder = "Tagged"
 
-// Create folder if not exists
-Directory.CreateDirectory musicsFolder |> ignore
-Directory.CreateDirectory buildFolder |> ignore
-
-let whenSome f = function
-    | None -> None
-    | Some x -> Some <| f x
-
-let getLastItem =
-    Array.rev >> Array.head
-
-let singleSplit (text: string) (separator: string) =
-    text.Split([| separator |], StringSplitOptions.RemoveEmptyEntries)
-
-let trim (text: string) =
-    text.Trim()
-
-let getFileName (path, showExtension) =
-    if showExtension then Path.GetFileName path
-    else Path.GetFileNameWithoutExtension path
-
-let replaceGenre genre =
-    match genre with
-    | "R&B" -> "R&B/Soul"
-    | "Hip Hop" -> "Hip Hop/Rap"
-    | gen -> trim gen
-
-let getFileInfo filePath =
-    let fileName = getFileName (filePath, false)
-    let namePieces = singleSplit fileName " - " |> Array.map trim
-    let titleAlbum = namePieces |> getLastItem
-    let parentFolderName = (Directory.GetParent filePath).Name
-
-    {
-        Title = titleAlbum;
-        Album = titleAlbum + " - Single";
-        Artists = [| namePieces |> Array.head |];
-        Genres = [| replaceGenre parentFolderName |];
+    type FileInfo = {
+        Title: string
+        Album: string
+        Artists: string[]
+        Genres: string[]
     }
 
-let isImage (path: string) =
-    [".jpg"; ".png"] 
-    |> List.map (fun ext -> path.EndsWith(ext))
-    |> List.contains true
+    // Create folder if not exists
+    Directory.CreateDirectory musicsFolder |> ignore
+    Directory.CreateDirectory buildFolder |> ignore
 
-let makeSquareImage (imgPath: string) =
-    let image = new Bitmap(imgPath)
-    let h = image.Height
-    let w = image.Width
+    let getLastItem =
+        Array.rev >> Array.head
 
-    if h <> w
-        then 
-            let minorSide = min h w
-            let divider x =
-               float (x - minorSide) * 0.5 |> int
+    let getFileName (path, showExtension) =
+        if showExtension then Path.GetFileName path
+        else Path.GetFileNameWithoutExtension path
 
-            let section = Rectangle (divider w, divider h, minorSide, minorSide)
-            let newImage = image.Clone(section, image.PixelFormat)
+    let replaceGenre genre =
+        match genre with
+        | "R&B" -> "R&B/Soul"
+        | "Hip Hop" -> "Hip Hop/Rap"
+        | gen -> trim gen
 
-            image.Dispose()
+    let getFileInfo filePath =
+        let fileName = getFileName (filePath, false)
+        let namePieces = singleSplit fileName " - " |> Array.map trim
+        let titleAlbum = namePieces |> getLastItem
+        let parentFolderName = (Directory.GetParent filePath).Name
 
-            newImage.Save imgPath
-            newImage.Dispose()
-        else
-            image.Dispose()
+        {
+            Title = titleAlbum;
+            Album = titleAlbum + " - Single";
+            Artists = [| namePieces |> Array.head |];
+            Genres = [| replaceGenre parentFolderName |];
+        }
+
+    let isImage path =
+        [".jpg"; ".png"] 
+        |> List.map (endsWith path)
+        |> List.contains true
+
+    let makeSquareImage imgPath =
+        let image = createBitmap imgPath
+        let h = image.Height
+        let w = image.Width
+
+        if h <> w
+            then 
+                let minorSide = min h w
+                let divider x =
+                   float (x - minorSide) * 0.5 |> int
+
+                let section = Rectangle (divider w, divider h, minorSide, minorSide)
+                let newImage = image.Clone(section, image.PixelFormat)
+
+                image.Dispose()
+
+                newImage.Save imgPath
+                newImage.Dispose()
+            else
+                image.Dispose()
         
-    imgPath
+        imgPath
 
-let createCover imagePath = 
-    let squareImagePath = makeSquareImage imagePath
-    let albumCover = Id3v2.AttachedPictureFrame(Picture squareImagePath) :> IPicture
-    albumCover.Type <- PictureType.FrontCover
+    let createCover imagePath = 
+        let squareImagePath = makeSquareImage imagePath
+        let albumCover = Id3v2.AttachedPictureFrame(Picture squareImagePath) :> IPicture
+        albumCover.Type <- PictureType.FrontCover
 
-    albumCover
+        albumCover
 
-let getFilePicture filePath = 
-    let fileName = getFileName (filePath, false)
-    let genreFolderPath = (Directory.GetParent filePath).FullName
+    let getFilePicture filePath = 
+        let fileName = getFileName (filePath, false)
+        let genreFolderPath = (Directory.GetParent filePath).FullName
 
-    let picturePath =
-        Directory.GetFiles genreFolderPath
-        |> Array.filter (fun file -> isImage file && getFileName (file, false) = fileName)
-        |> Array.tryHead
+        let picturePath =
+            Directory.GetFiles genreFolderPath
+            |> Array.filter (fun file -> isImage file && getFileName (file, false) = fileName)
+            |> Array.tryHead
 
-    match picturePath with
-    | Some path -> [| createCover path |]
-    | _ -> [||]
+        match picturePath with
+        | Some path -> [| createCover path |]
+        | _ -> [||]
 
-let deleteFilePicture filePath =
-    let fileName = getFileName (filePath, false)
-    let genreFolderPath = (Directory.GetParent filePath).FullName
-    let imagePath =
-        Directory.GetFiles genreFolderPath
-        |> Array.filter (fun file -> isImage file && getFileName (file, false) = fileName)
-        |> Array.tryHead
+    let deleteFilePicture filePath =
+        let fileName = getFileName (filePath, false)
+        let genreFolderPath = (Directory.GetParent filePath).FullName
+        let imagePath =
+            Directory.GetFiles genreFolderPath
+            |> Array.filter (fun file -> isImage file && getFileName (file, false) = fileName)
+            |> Array.tryHead
     
-    imagePath |> whenSome File.Delete |> ignore
+        imagePath |> whenSome File.Delete |> ignore
 
-let moveFile path buildPath =
-    let filename = getFileName (path, true)
-    let movePath = Path.Combine (buildPath, filename)
+    let moveFile path buildPath =
+        let filename = getFileName (path, true)
+        let movePath = Path.Combine (buildPath, filename)
 
-    File.Move (path, movePath)
+        File.Move (path, movePath)
 
-let MP3Files = 
-    Directory.GetDirectories musicsFolder
-    |> Array.collect (fun dir -> Directory.GetFiles (dir, "*.mp3"))
+    let MP3Files = 
+        Directory.GetDirectories musicsFolder
+        |> Array.collect (fun dir -> Directory.GetFiles (dir, "*.mp3"))
 
-MP3Files 
-|> Array.iter (fun filePath ->
-    let fileInfo = getFileInfo filePath
-    let pictures = getFilePicture filePath
-    let file = File.Create filePath
+    MP3Files 
+    |> Array.iter (fun filePath ->
+        let fileInfo = getFileInfo filePath
+        let pictures = getFilePicture filePath
+        let file = File.Create filePath
 
-    file.Tag.Title <- fileInfo.Title
-    file.Tag.Album <- fileInfo.Album
-    file.Tag.Performers <- fileInfo.Artists
-    file.Tag.AlbumArtists <- fileInfo.Artists
-    file.Tag.Composers <- fileInfo.Artists
-    file.Tag.Genres <- fileInfo.Genres
-    file.Tag.Comment <- String.Empty
-    file.Tag.Track <- 1u
-    file.Tag.TrackCount <- 1u
-    file.Tag.Year <- uint32 DateTime.Now.Year
-    file.Tag.Pictures <- pictures
+        file.Tag.Title <- fileInfo.Title
+        file.Tag.Album <- fileInfo.Album
+        file.Tag.Performers <- fileInfo.Artists
+        file.Tag.AlbumArtists <- fileInfo.Artists
+        file.Tag.Composers <- fileInfo.Artists
+        file.Tag.Genres <- fileInfo.Genres
+        file.Tag.Comment <- String.Empty
+        file.Tag.Track <- 1u
+        file.Tag.TrackCount <- 1u
+        file.Tag.Year <- uint32 DateTime.Now.Year
+        file.Tag.Pictures <- pictures
 
-    file.Save()
+        file.Save()
 
-    moveFile filePath buildFolder
-    deleteFilePicture filePath
-)
+        moveFile filePath buildFolder
+        deleteFilePicture filePath
+    )
