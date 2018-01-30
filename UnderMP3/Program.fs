@@ -17,26 +17,33 @@ type FileInfo = {
 Directory.CreateDirectory musicsFolder |> ignore
 Directory.CreateDirectory buildFolder |> ignore
 
-let getFileInfo fileDir =
-    let fileName = Path.GetFileNameWithoutExtension fileDir
+let getLastItem =
+    Array.rev >> Array.head
+
+let getFileName (path, showExtension) =
+    if showExtension then Path.GetFileName path
+    else Path.GetFileNameWithoutExtension path
+
+let getFileInfo filePath =
+    let fileName = getFileName (filePath, false)
     let namePieces = fileName.Split ([|" - "|], StringSplitOptions.RemoveEmptyEntries)
-    let titleAlbum = (Array.head << Array.tail) namePieces
-    let parentDir = Directory.GetParent fileDir
+    let titleAlbum = getLastItem namePieces
+    let parentFolderName = (Directory.GetParent filePath).Name
 
     {
         Title = titleAlbum;
         Album = titleAlbum + " - Single";
         Artist = Array.head namePieces;
-        Genre = parentDir.Name;
+        Genre = parentFolderName;
     }
 
-let isImage (s: string) =
+let isImage (path: string) =
     [".jpg"; ".png"] 
-    |> List.map (fun ext -> s.EndsWith(ext))
+    |> List.map (fun ext -> path.EndsWith(ext))
     |> List.contains true
 
-let cutImageInSquare (imgDir: string) =
-    let image = new Bitmap(imgDir)
+let makeSquareImage (imgPath: string) =
+    let image = new Bitmap(imgPath)
     let h = image.Height
     let w = image.Width
 
@@ -51,57 +58,58 @@ let cutImageInSquare (imgDir: string) =
 
             image.Dispose()
 
-            newImage.Save imgDir
+            newImage.Save imgPath
             newImage.Dispose()
         else
             image.Dispose()
         
-    imgDir
+    imgPath
 
-let getFilePicture fileDir = 
-    let fileName = Path.GetFileNameWithoutExtension fileDir
-    let genreFolder = (Directory.GetParent fileDir).FullName
-    let pic =
-        Directory.GetFiles genreFolder
-        |> Array.filter (fun c -> isImage c && Path.GetFileNameWithoutExtension c = fileName)
+let getFilePicture filePath = 
+    let fileName = getFileName (filePath, false)
+    let genreFolderPath = (Directory.GetParent filePath).FullName
+
+    let picture =
+        Directory.GetFiles genreFolderPath
+        |> Array.filter (fun file -> isImage file && getFileName (file, false) = fileName)
         |> Array.tryHead
 
-    match pic with
-    | Some c ->
-        let imgDir = cutImageInSquare c
-        let albumCover = Id3v2.AttachedPictureFrame(Picture imgDir) :> IPicture
+    match picture with
+    | Some imagePath ->
+        let squareImagePath = makeSquareImage imagePath
+        let albumCover = Id3v2.AttachedPictureFrame(Picture squareImagePath) :> IPicture
         albumCover.Type <- PictureType.FrontCover
 
         [| albumCover |]
     | _ -> [||]
 
-let deleteFilePicture fileDir =
-    let fileName = Path.GetFileNameWithoutExtension fileDir
-    let genreFolder = (Directory.GetParent fileDir).FullName
-    let pic =
-        Directory.GetFiles genreFolder
-        |> Array.filter (fun c -> isImage c && Path.GetFileNameWithoutExtension c = fileName)
+let deleteFilePicture filePath =
+    let fileName = getFileName (filePath, false)
+    let genreFolderPath = (Directory.GetParent filePath).FullName
+    let imagePath =
+        Directory.GetFiles genreFolderPath
+        |> Array.filter (fun file -> isImage file && getFileName (file, false) = fileName)
         |> Array.tryHead
     
-    match pic with 
-    | Some p -> File.Delete p
+    match imagePath with 
+    | Some path -> File.Delete path
     | _ -> ()
 
-let moveFile dir buildDir  =
-    let filename = Path.GetFileName dir
-    let moveDir = Path.Combine (buildDir, filename)
+let moveFile path buildPath  =
+    let filename = getFileName (path, true)
+    let movePath = Path.Combine (buildPath, filename)
 
-    File.Move (dir, moveDir)
+    File.Move (path, movePath)
 
 let MP3Files = 
     Directory.GetDirectories musicsFolder
     |> Array.collect (fun dir -> Directory.GetFiles (dir, "*.mp3"))
 
-
-MP3Files |> Array.iter (fun fileDir ->
-    let fileInfo = getFileInfo fileDir
-    let pictures = getFilePicture fileDir
-    let file = File.Create fileDir
+MP3Files 
+|> Array.iter (fun filePath ->
+    let fileInfo = getFileInfo filePath
+    let pictures = getFilePicture filePath
+    let file = File.Create filePath
     let artist = [| fileInfo.Artist |]
 
     file.Tag.Title <- fileInfo.Title
@@ -118,6 +126,6 @@ MP3Files |> Array.iter (fun fileDir ->
 
     file.Save()
 
-    moveFile fileDir buildFolder
-    deleteFilePicture fileDir
+    moveFile filePath buildFolder
+    deleteFilePicture filePath
 )
