@@ -25,7 +25,7 @@ module Program =
     let getLastItem =
         Array.rev >> Array.head
 
-    let getFileName (path, showExtension) =
+    let getFileName (path: string, showExtension) =
         if showExtension then Path.GetFileName path
         else Path.GetFileNameWithoutExtension path
 

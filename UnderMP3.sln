@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27130.2026
+VisualStudioVersion = 15.0.28010.2046
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "AutoTag", "AutoTag\AutoTag.fsproj", "{3DC81886-B1FC-47D7-8640-43E0E5202F11}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "UnderMP3", "UnderMP3\UnderMP3.fsproj", "{B14198FA-B943-48E0-8A5C-2D32229754C2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,15 +11,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{3DC81886-B1FC-47D7-8640-43E0E5202F11}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3DC81886-B1FC-47D7-8640-43E0E5202F11}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3DC81886-B1FC-47D7-8640-43E0E5202F11}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3DC81886-B1FC-47D7-8640-43E0E5202F11}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B14198FA-B943-48E0-8A5C-2D32229754C2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B14198FA-B943-48E0-8A5C-2D32229754C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B14198FA-B943-48E0-8A5C-2D32229754C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B14198FA-B943-48E0-8A5C-2D32229754C2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {ECC67145-036F-4151-827F-1275775CE07D}
+		SolutionGuid = {B4E05456-0BDF-47B2-9543-68A2FA134AD8}
 	EndGlobalSection
 EndGlobal
